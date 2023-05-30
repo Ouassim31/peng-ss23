@@ -1,2 +1,6 @@
 .env
 venv
+dist
+token.json
+client_file.json
+google_oauth.egg-info
