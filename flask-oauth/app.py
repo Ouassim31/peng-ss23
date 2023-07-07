@@ -3,7 +3,7 @@
 import os
 import flask
 import requests
-
+from cryptography.fernet import Fernet
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
@@ -36,7 +36,7 @@ app = flask.Flask(__name__)
 # Note: A secret key is included in the sample so that it works.
 # If you use this code in your application, replace this with a truly secret
 # key. See https://flask.palletsprojects.com/quickstart/#sessions.
-app.secret_key = '7bbb40afcace025ced4fab4201309e01b22f6a2d9ef381673d4eba94bf5252f1'
+app.secret_key = 'FKSRstfF1-k1bUwi5MW1S-wVdLlbP4W0GNnkmmKkPek='
 
 
 @app.route('/')
@@ -45,7 +45,7 @@ def index():
 
 
 @app.route('/test')
-def test_api_request():
+def getMirorToken():
     if 'credentials' not in flask.session:
         return flask.redirect('authorize')
 
@@ -53,11 +53,31 @@ def test_api_request():
     credentials = google.oauth2.credentials.Credentials(
         **flask.session['credentials'])
 
-    fitness = googleapiclient.discovery.build(
-        API_SERVICE_NAME, API_VERSION, credentials=credentials)
+   
+    # Save credentials back to session in case access token was refreshed.
+    # ACTION ITEM: In a production app, you likely want to save these
+    #              credentials in a persistent database instead.
+    
+    cipher_suite = Fernet(app.secret_key)
+    token = cipher_suite.encrypt(json.dumps(credentials_to_dict(credentials)).encode())
+    response = requests.post("http://localhost:3000/callback",json=({'token': token.decode()}))
+    return flask.jsonify({'status_code': response.status_code})
+@app.route('/my/pdata')
 
-    # files = fitness.users().dataSources().list(userId='me',dataTypeName=None).execute()
-    # files = fitness.users().dataSources().datasets().get(userId='me',dataSourceId='derived:com.google.calories.expended:com.google.android.gms:merge_calories_expended',datasetId="1688169600000-1688226513302000000").execute()
+def getpdata():
+    #fetch header
+    token = flask.request.headers.get('Authorization')
+    #decrypt mirror token
+    cipher_suite = Fernet(app.secret_key)
+    #fetch and trasform personal data
+    credentials_json = cipher_suite.decrypt(token.encode()).decode().replace('\'',"\"")
+    credentials = google.oauth2.credentials.Credentials(
+        **json.loads(credentials_json)
+    )
+    
+    return flask.jsonify(getUserinfos(credentials))
+@app.route('/my/fitdata')
+def getfitdata():
     request_body = {
         "aggregateBy": [{
             #
@@ -81,27 +101,21 @@ def test_api_request():
         "startTimeMillis": int((datetime.now() - timedelta(days=7)).timestamp()*1000),
         "endTimeMillis": int(datetime.now().timestamp()*1000)
     }
-    files = fitness.users().dataset().aggregate(
+    #fetch  mirror token
+    token = flask.request.headers.get('Authorization')
+    #decrypt mirror token
+    cipher_suite = Fernet(app.secret_key)
+     # Assuming the encrypted data is passed in the request body as JSON
+    credentials_json = cipher_suite.decrypt(token.encode()).decode().replace('\'',"\"")
+    #fetch and aggregate fit data
+    credentials = google.oauth2.credentials.Credentials(
+        **json.loads(credentials_json)
+    )
+    fitness = googleapiclient.discovery.build(
+        API_SERVICE_NAME, API_VERSION, credentials=credentials)
+    fitdata = fitness.users().dataset().aggregate(
         userId="me", body=request_body).execute()
-    
-    user = {
-        **getUserinfos(credentials),
-        **aggregate_fitdata(files)
-    }
-    # Save credentials back to session in case access token was refreshed.
-    # ACTION ITEM: In a production app, you likely want to save these
-    #              credentials in a persistent database instead.
-    flask.session['credentials'] = credentials_to_dict(credentials)
-
-    response = requests.post(
-        'http://127.0.0.1:3000/callback', json=json.dumps(files))
-    if response.status_code == 200:
-        return flask.redirect(response.json()['redirect_link'])
-    else:
-        return 'Failed to send data'
-    # return flask.jsonify(**files)
-
-
+    return flask.jsonify(**aggregate_fitdata(fitdata))
 @app.route('/authorize')
 def authorize():
     # Create flow instance to manage the OAuth 2.0 Authorization Grant Flow steps.
@@ -120,10 +134,10 @@ def authorize():
         access_type='offline',
         # Enable incremental authorization. Recommended as a best practice.
         include_granted_scopes='true')
-    print(authorization_url)
+    
     # Store the state so the callback can verify the auth server response.
     flask.session['state'] = state
-
+   
     return flask.redirect(authorization_url)
 
 
@@ -148,7 +162,7 @@ def oauth2callback():
     credentials = flow.credentials
     flask.session['credentials'] = credentials_to_dict(credentials)
 
-    return flask.redirect(flask.url_for('test_api_request'))
+    return flask.redirect(flask.url_for('getMirorToken'))
 
 
 @app.route('/revoke')
