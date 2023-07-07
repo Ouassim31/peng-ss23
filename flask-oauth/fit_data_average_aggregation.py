@@ -84,6 +84,6 @@ def aggregate_fitdata(input):
     print(f"Total Aggregated Heart Minutes: {average_aggregated_heart_minutes}")
     print(
         f"Total Aggregated Active Minutes: {average_aggregated_active_minutes}")
-    return {'average_heart_rate_per_active_period': average_aggregated_calories,
-            'average_calories_burnt_per_active_period': average_aggregated_heart_minutes,
+    return {'average_heart_rate_per_active_period': average_aggregated_heart_minutes,
+            'average_calories_burnt_per_active_period': average_aggregated_calories,
             'average_active_interval': average_aggregated_active_minutes}
