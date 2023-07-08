@@ -9,7 +9,7 @@ import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import os
 from datetime import datetime, timedelta
-from fit_data_average_aggregation import aggregate_fitdata
+from fit_data_agg import SelectAggregationType
 import json
 
 from component import getUserinfos
@@ -61,7 +61,7 @@ def getMirorToken():
     cipher_suite = Fernet(app.secret_key)
     token = cipher_suite.encrypt(json.dumps(credentials_to_dict(credentials)).encode())
     response = requests.post("http://localhost:3000/callback",json=({'token': token.decode()}))
-    return flask.jsonify({'status_code': response.status_code})
+    return flask.redirect(response.json()['redirect_link'])
 @app.route('/my/pdata')
 
 def getpdata():
@@ -78,6 +78,7 @@ def getpdata():
     return flask.jsonify(getUserinfos(credentials))
 @app.route('/my/fitdata')
 def getfitdata():
+    
     request_body = {
         "aggregateBy": [{
             #
@@ -97,8 +98,8 @@ def getfitdata():
             # "dataSourceId": "derived:com.google.activity.segment:com.google.android.gms:merge_activity_segments"
         }
         ],
-        "bucketByTime": {"durationMillis": 86400000},
-        "startTimeMillis": int((datetime.now() - timedelta(days=7)).timestamp()*1000),
+        "bucketByTime": {"durationMillis": 3600000},
+        "startTimeMillis": int((datetime.now() - timedelta(weeks=2)).timestamp()*1000),
         "endTimeMillis": int(datetime.now().timestamp()*1000)
     }
     #fetch  mirror token
@@ -115,7 +116,11 @@ def getfitdata():
         API_SERVICE_NAME, API_VERSION, credentials=credentials)
     fitdata = fitness.users().dataset().aggregate(
         userId="me", body=request_body).execute()
-    return flask.jsonify(**aggregate_fitdata(fitdata))
+    #return flask.jsonify(**fitdata)
+    
+    type_select = SelectAggregationType(int(flask.request.args['aggtype']), fitdata)
+    
+    return flask.jsonify(type_select.aggregation_type())
 @app.route('/authorize')
 def authorize():
     # Create flow instance to manage the OAuth 2.0 Authorization Grant Flow steps.
