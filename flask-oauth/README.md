@@ -20,18 +20,23 @@ Also, ensure that you have created a `client_secret.json` file containing the OA
 ## How to Run
 
 1. Clone or download the flask-oauth directory to your local machine.
-
-2. Install the required dependencies by running:
+2. create and activate a virtual environment (optional, but recommended):
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows, use: venv\Scripts\activate
+   ```
+   
+3. Install the required dependencies by running:
    ```
    pip install -r requirements.txt
    ```
 
-3. Start the Flask development server by running the following command:
+4. Start the Flask development server by running the following command:
    ```
    python app.py
    ```
 
-4. The web application will be available at `http://localhost:8080/` in your web browser.
+5. The web application will be available at `http://localhost:8080/` in your web browser.
 
 ## Endpoints
 
