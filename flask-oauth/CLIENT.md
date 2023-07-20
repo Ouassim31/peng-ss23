@@ -10,7 +10,7 @@ Before running the application, make sure you have Python and the required packa
 ```bash
 pip install -r requirements.txt
 ```
-##Usage
+## Usage
 
 The provided code is a Flask application that serves a simple e-store website. The application allows users to log in with Google, view their profile information, and see some fit data. The front-end uses HTML templates to render the web pages, and the back-end uses Flask to handle requests and fetch data from an API.
 
