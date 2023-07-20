@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Credential Management</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    form {
+      margin-top: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input[type="url"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 5px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  
+  <h1>Credential Management</h1>
+  {% if(creds) %}
+  <div class="profile">
+    <h2>credentials</h2>
+    <table>
+        <tr>
+            <th></th>
+            <th></th>
+        </tr>
+        {% for property, value in creds.items() %}
+            <tr>
+                <td>{{ property }}</td>
+                <td>{{ value }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+  {%endif%}
+  <form id="credentialForm">
+    <label for="url">Client Application URL:</label>
+    <input type="url" id="url" name="url" placeholder="Enter the client application URL" required>
+
+    <button type="submit" onclick="sendCredentials(event)">Send Credentials</button>
+    <button type="button" onclick="removeCredentials()">Remove Credentials from Session</button>
+  </form>
+
+  <script>
+    function sendCredentials(event) {
+      event.preventDefault();
+      
+      const url = document.getElementById('url').value;
+      window.location.href= '/send?callback_url='+url
+      
+      // Perform the necessary actions to revoke credentials for the provided URL
+      // For example, you can make an API call to your server
+
+      // Clear the form input
+      document.getElementById('url').value = '';
+    }
+    function revokeCredentials() {
+      // Perform the necessary actions to remove credentials from the session
+      // For example, you can clear any stored tokens or session data
+      window.location.href= '/revoke'
+      // Display a success message
+      alert('Credentials revoked.');
+    }
+    function removeCredentials() {
+      // Perform the necessary actions to remove credentials from the session
+      // For example, you can clear any stored tokens or session data
+      window.location.href= '/clear'
+      // Display a success message
+      alert('Credentials removed from the session.');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User Profile</title>
+    <style>
+        .profile {
+            background-color: #f2f2f2;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .profile table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .profile th,
+        .profile td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <style>
+  </style>
+</head>
+<body>
+
+<div class="jumbotron">
+  <div class="container text-center">
+    <h1>PENG E-STORE</h1>
+    <p>Everything that you need</p>
+  </div>
+</div>
+
+<nav class="navbar navbar-inverse">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">Logo</a>
+    </div>
+    <div class="collapse navbar-collapse" id="myNavbar">
+      <ul class="nav navbar-nav">
+        <li class="active"><a href="#">Home</a></li>
+        <li><a href="#">Products</a></li>
+        <li><a href="#">Deals</a></li>
+        <li><a href="#">Stores</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href='/profile'><button>Profile</button></a></li>
+        <li><a href='/logout'><button>Logout</button></a></li>
+        <li><a href="#"><span class="glyphicon glyphicon-shopping-cart"></span> Cart</a></li>
+      </ul>
+    </div>
+  </div>
+  
+</nav>
+<div class="profile">
+    <h1>User Profile</h1>
+    <p><strong>Email:</strong> {{ response.email }}</p>
+    <p><strong>First Name:</strong> {{ response.firstname }}</p>
+    <p><strong>Gender:</strong> {{ response.gender }}</p>
+    <p><strong>ID:</strong> {{ response.id }}</p>
+    <p><strong>Is Adult:</strong> {{ response.isAdult }}</p>
+    <p><strong>Region:</strong> {{ response.region }}</p>
+</div>
+
+<div class="profile">
+    <h2>Fitdata</h2>
+    <table>
+        <tr>
+            <th></th>
+            <th></th>
+        </tr>
+        {% for property, value in response.fitdata.items() %}
+            <tr>
+                <td>{{ property }}</td>
+                <td>{{ value }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</div>
+</body>
+</html>

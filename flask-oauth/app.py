@@ -6,14 +6,12 @@ import requests
 from cryptography.fernet import Fernet
 import google.oauth2.credentials
 import google_auth_oauthlib.flow
-import googleapiclient.discovery
 import os
-from datetime import datetime, timedelta
-from fit_data_agg import SelectAggregationType
 import json
+from component import getUserinfos,getUserfitdata
 
-from component import getUserinfos
-os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
+
 # This variable specifies the name of a file that contains the OAuth 2.0
 # information for this application, including its client_id and client_secret.
 CLIENT_SECRETS_FILE = "client_secret.json"
@@ -24,11 +22,10 @@ SCOPES = ['https://www.googleapis.com/auth/fitness.activity.read',
           'https://www.googleapis.com/auth/fitness.body.read',
           'https://www.googleapis.com/auth/userinfo.email',
           'openid',
-          'https://www.googleapis.com/auth/userinfo.profile',
-          
+          'https://www.googleapis.com/auth/userinfo.profile', 
           'https://www.googleapis.com/auth/user.gender.read',
-          'https://www.googleapis.com/auth/user.birthday.read',
-          'https://www.googleapis.com/auth/drive.metadata.readonly']
+          'https://www.googleapis.com/auth/user.birthday.read'
+          ]
 API_SERVICE_NAME = 'fitness'
 API_VERSION = 'v1'
 
@@ -41,10 +38,13 @@ app.secret_key = 'FKSRstfF1-k1bUwi5MW1S-wVdLlbP4W0GNnkmmKkPek='
 
 @app.route('/')
 def index():
-    return print_index_table()
+    if 'credentials' not in flask.session:
+        return flask.render_template('component/login.html')
+    creds = flask.session['credentials']
+    return flask.render_template('component/home.html',creds=creds)
 
 
-@app.route('/test')
+@app.route('/send')
 def getMirorToken():
     if 'credentials' not in flask.session:
         return flask.redirect('authorize')
@@ -52,19 +52,33 @@ def getMirorToken():
     # Load credentials from the session.
     credentials = google.oauth2.credentials.Credentials(
         **flask.session['credentials'])
-
-   
-    # Save credentials back to session in case access token was refreshed.
-    # ACTION ITEM: In a production app, you likely want to save these
-    #              credentials in a persistent database instead.
-    
+    # Encrypt credentials into mirror token
     cipher_suite = Fernet(app.secret_key)
     token = cipher_suite.encrypt(json.dumps(credentials_to_dict(credentials)).encode())
-    response = requests.post("http://localhost:3000/callback",json=({'token': token.decode()}))
-    return flask.redirect(response.json()['redirect_link'])
-@app.route('/my/pdata')
+    response = requests.post(flask.request.args['callback_url'],json=({'token': token.decode()}))
 
+    return flask.redirect(response.json()['redirect_link'])
+
+@app.route('/my')
+def getprofile():
+    #fetch header
+    token = flask.request.headers.get('Authorization')
+    #decrypt mirror token
+    cipher_suite = Fernet(app.secret_key)
+    #fetch and trasform personal data
+    credentials_json = cipher_suite.decrypt(token.encode()).decode().replace('\'',"\"")
+    credentials = google.oauth2.credentials.Credentials(
+        **json.loads(credentials_json)
+    )
+    fitdata = getUserfitdata(credentials,int(flask.request.args['weeks']),int(flask.request.args['aggtype']))
+    userdata = getUserinfos(credentials)
+    return flask.jsonify({
+        **userdata,
+        **fitdata
+    })
+@app.route('/my/pdata')
 def getpdata():
+    
     #fetch header
     token = flask.request.headers.get('Authorization')
     #decrypt mirror token
@@ -78,30 +92,6 @@ def getpdata():
     return flask.jsonify(getUserinfos(credentials))
 @app.route('/my/fitdata')
 def getfitdata():
-    
-    request_body = {
-        "aggregateBy": [{
-            #
-            "dataTypeName": "com.google.calories.expended",
-            # "dataSourceId": "derived:com.google.calories.expended:com.google.android.gms:merge_calories_expended"
-        },
-            {
-            "dataTypeName": "com.google.heart_minutes",
-            # "dataSourceId": "derived:com.google.heart_minutes:com.google.android.gms:merge_heart_minutes"
-        },
-            {
-            "dataTypeName": "com.google.active_minutes",
-            # "dataSourceId": "derived:com.google.active_minutes:com.google.android.gms:merge_active_minutes"
-        },
-            {
-            "dataTypeName": "com.google.activity.segment",
-            # "dataSourceId": "derived:com.google.activity.segment:com.google.android.gms:merge_activity_segments"
-        }
-        ],
-        "bucketByTime": {"durationMillis": 3600000},
-        "startTimeMillis": int((datetime.now() - timedelta(weeks=2)).timestamp()*1000),
-        "endTimeMillis": int(datetime.now().timestamp()*1000)
-    }
     #fetch  mirror token
     token = flask.request.headers.get('Authorization')
     #decrypt mirror token
@@ -112,20 +102,14 @@ def getfitdata():
     credentials = google.oauth2.credentials.Credentials(
         **json.loads(credentials_json)
     )
-    fitness = googleapiclient.discovery.build(
-        API_SERVICE_NAME, API_VERSION, credentials=credentials)
-    fitdata = fitness.users().dataset().aggregate(
-        userId="me", body=request_body).execute()
-    #return flask.jsonify(**fitdata)
+    fitdata = getUserfitdata(credentials,int(flask.request.args['weeks']),int(flask.request.args['aggtype']))
     
-    type_select = SelectAggregationType(int(flask.request.args['aggtype']), fitdata)
-    
-    return flask.jsonify(type_select.aggregation_type())
-@app.route('/authorize')
+    return flask.jsonify(fitdata)
+@app.route('/authorize',methods=['POST'])
 def authorize():
     # Create flow instance to manage the OAuth 2.0 Authorization Grant Flow steps.
     flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-        CLIENT_SECRETS_FILE, scopes=SCOPES)
+        CLIENT_SECRETS_FILE, scopes=flask.request.get_json()['scopes'])
 
     # The URI created here must exactly match one of the authorized redirect URIs
     # for the OAuth 2.0 client, which you configured in the API Console. If this
@@ -143,7 +127,7 @@ def authorize():
     # Store the state so the callback can verify the auth server response.
     flask.session['state'] = state
    
-    return flask.redirect(authorization_url)
+    return flask.jsonify({'redirect_url' : authorization_url})
 
 
 @app.route('/oauth2callback')
@@ -158,7 +142,6 @@ def oauth2callback():
 
     # Use the authorization server's response to fetch the OAuth 2.0 tokens.
     authorization_response = flask.request.url
-    print(authorization_response)
     flow.fetch_token(authorization_response=authorization_response)
 
     # Store credentials in the session.
@@ -167,7 +150,7 @@ def oauth2callback():
     credentials = flow.credentials
     flask.session['credentials'] = credentials_to_dict(credentials)
 
-    return flask.redirect(flask.url_for('getMirorToken'))
+    return flask.redirect(flask.url_for('index'))
 
 
 @app.route('/revoke')
@@ -184,18 +167,28 @@ def revoke():
                            headers={'content-type': 'application/x-www-form-urlencoded'})
 
     status_code = getattr(revoke, 'status_code')
-    if status_code == 200:
-        return ('Credentials successfully revoked.' + print_index_table())
-    else:
-        return ('An error occurred.' + print_index_table())
+    return flask.redirect(flask.url_for('index'))
 
 
 @app.route('/clear')
 def clear_credentials():
+    
     if 'credentials' in flask.session:
+        credentials = google.oauth2.credentials.Credentials(
+        **flask.session['credentials'])
+
+        revoke = requests.post('https://oauth2.googleapis.com/revoke',
+                           params={'token': credentials.token},
+                           headers={'content-type': 'application/x-www-form-urlencoded'})
+
+        status_code = getattr(revoke, 'status_code')
         del flask.session['credentials']
-    return ('Credentials have been cleared.<br><br>' +
-            print_index_table())
+    
+        
+        
+    
+    return flask.redirect(flask.url_for('index'))
+        
 
 
 def credentials_to_dict(credentials):
@@ -207,34 +200,13 @@ def credentials_to_dict(credentials):
             'scopes': credentials.scopes}
 
 
-def print_index_table():
-    return ('<table>' +
-            '<tr><td><a href="/test">Test an API request</a></td>' +
-            '<td>Submit an API request and see a formatted JSON response. ' +
-            '    Go through the authorization flow if there are no stored ' +
-            '    credentials for the user.</td></tr>' +
-            '<tr><td><a href="/authorize">Test the auth flow directly</a></td>' +
-            '<td>Go directly to the authorization flow. If there are stored ' +
-            '    credentials, you still might not be prompted to reauthorize ' +
-            '    the application.</td></tr>' +
-            '<tr><td><a href="/revoke">Revoke current credentials</a></td>' +
-            '<td>Revoke the access token associated with the current user ' +
-            '    session. After revoking credentials, if you go to the test ' +
-            '    page, you should see an <code>invalid_grant</code> error.' +
-            '</td></tr>' +
-            '<tr><td><a href="/clear">Clear Flask session credentials</a></td>' +
-            '<td>Clear the access token currently stored in the user session. ' +
-            '    After clearing the token, if you <a href="/test">test the ' +
-            '    API request</a> again, you should go back to the auth flow.' +
-            '</td></tr></table>')
-
 
 if __name__ == '__main__':
     # When running locally, disable OAuthlib's HTTPs verification.
     # ACTION ITEM for developers:
     #     When running in production *do not* leave this option enabled.
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-
+    os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
     # Specify a hostname and port that are set as a valid redirect URI
     # for your API project in the Google API Console.
     app.run('localhost', 8080, debug=True)

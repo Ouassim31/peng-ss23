@@ -244,8 +244,7 @@ class SelectAggregationType:
       average_date = AverageFitData(entire_aggregated_dataset)
       overall_average_fit_data = average_date.average_fit_data()
       print_entire_avgerage = PrintAverage(overall_average_fit_data)
-      print_entire_avgerage.print_average()
-      print(overall_average_fit_data)
+      
       return(overall_average_fit_data)
       
     # aggregation by weekly
@@ -271,10 +270,7 @@ class SelectAggregationType:
                 
         weekly_average_data[week_number] = []
         weekly_average_data[week_number].append(overall_week_average_fit_data)
-        #print(f"Calendar Week Number: {week_number}")
-        #print_week_avgerage = PrintAverage(overall_week_average_fit_data)
-        #print_week_avgerage.print_average()
-      print(weekly_average_data)
+       
       return(weekly_average_data)
 
 
@@ -300,10 +296,7 @@ class SelectAggregationType:
                 
         daily_average_data[day] = []
         daily_average_data[day].append(overall_day_average_fit_data)
-        #print(f"Calendar Day: {day}")
-        #print_day_avgerage = PrintAverage(overall_day_average_fit_data)
-        #print_day_avgerage.print_average()
-      print(daily_average_data)
+        
       return(daily_average_data)
     
     # aggregation by hourly
@@ -331,16 +324,13 @@ class SelectAggregationType:
         hourly_average_data[hour] = []
         hourly_average_data[hour].append(overall_hour_average_fit_data)
         
-        #print(f"Day & Hour: {hour}")
-        #print_hour_avgerage = PrintAverage(overall_hour_average_fit_data)
-        #print_hour_avgerage.print_average()
-      print(hourly_average_data)
+      
       return(hourly_average_data)
       
     else:
       return "No fitness data available"
 
 
-type_select = SelectAggregationType(2, "test_fit_Data.json")
+#type_select = SelectAggregationType(2, "test_fit_Data.json")
 #type_select.aggregation_type()
 

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    
+    h1 {
+      text-align: center;
+    }
+    
+    #scopes-container {
+      margin-top: 20px;
+    }
+    
+    .scope-item {
+      margin-bottom: 10px;
+    }
+    
+    button {
+      padding: 10px;
+      background-color: #4285F4;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+    
+    #login-button {
+      margin-top: 20px;
+      width: 100%;
+    }
+  </style>
+  <script>
+    function getDescription(scope) {
+      switch (scope) {
+        case 'https://www.googleapis.com/auth/fitness.activity.read':
+          return 'Read fitness activity data';
+        case 'https://www.googleapis.com/auth/fitness.body.read':
+          return 'Read fitness body data';
+        case 'https://www.googleapis.com/auth/userinfo.email':
+          return 'Access user\'s email address';
+        case 'openid':
+          return 'Authenticate using OpenID Connect';
+        case 'https://www.googleapis.com/auth/userinfo.profile':
+          return 'Access user\'s basic profile information';
+        case 'https://www.googleapis.com/auth/user.gender.read':
+          return 'Read user\'s gender';
+        case 'https://www.googleapis.com/auth/user.birthday.read':
+          return 'Read user\'s birthday';
+        default:
+          return '';
+      }
+    }
+    
+    async function handleClick() {
+      var selectedScopes = [];
+      var checkboxes = document.querySelectorAll('.scope-item input[type="checkbox"]:checked');
+      
+      checkboxes.forEach(function(checkbox) {
+        selectedScopes.push(checkbox.value);
+      });
+      const payload = {scopes: selectedScopes};
+
+      const response = await fetch('/authorize', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+      const json = await response.json()
+      
+      window.location.href = json.redirect_url
+     
+    
+    }
+  </script>
+</head>
+<body>
+  <h1>Login with Google</h1>
+  
+  <div id="scopes-container">
+    <div class="scope-item">
+      <input type="checkbox" value="https://www.googleapis.com/auth/fitness.activity.read">
+      <label>Read fitness activity data</label>
+    </div>
+    <div class="scope-item">
+      <input type="checkbox" value="https://www.googleapis.com/auth/fitness.body.read">
+      <label>Read fitness body data</label>
+    </div>
+    <div class="scope-item">
+      <input type="checkbox" value="https://www.googleapis.com/auth/userinfo.email">
+      <label>Access user's email address</label>
+    </div>
+    <div class="scope-item">
+      <input type="checkbox" value="openid">
+      <label>Authenticate using OpenID Connect</label>
+    </div>
+    <div class="scope-item">
+      <input type="checkbox" value="https://www.googleapis.com/auth/userinfo.profile">
+      <label>Access user's basic profile information</label>
+    </div>
+    <div class="scope-item">
+      <input type="checkbox" value="https://www.googleapis.com/auth/user.gender.read">
+      <label>Read user's gender</label>
+    </div>
+    <div class="scope-item">
+      <input type="checkbox" value="https://www.googleapis.com/auth/user.birthday.read">
+      <label>Read user's birthday</label>
+    </div>
+  </div>
+  
+  <button id="login-button" onclick="handleClick()">Login with Google</button>
+</body>
+</html>
