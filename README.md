@@ -10,9 +10,15 @@ A list of the personal data transformations:
 - Birth date: Summarise, from exact date to age category
 - Image / Domain / ID: Minimisation, Throw them away
 - Access_token: Encryption
-- 
 
 A list of the fit data transformations:
 - 
-- 
+- Heart rate per minute: summarise to intensitive level
+- Calories burned: generalization to a range
+- Active time in minutes:  pertubation with gaussian noise 
+
 A list of obligations:
+-
+- Consent: Consent screen
+- Transparency: Providing information about all we do
+- Security: CSRF-attcks prevention
