@@ -19,7 +19,7 @@ Also, ensure that you have created a `client_secret.json` file containing the OA
 
 ## How to Run
 
-1. Clone or download the repository to your local machine.
+1. Clone or download the flask-oauth directory to your local machine.
 
 2. Install the required dependencies by running:
    ```
@@ -74,6 +74,7 @@ Also, ensure that you have created a `client_secret.json` file containing the OA
 
 - The application uses Flask's session to store user credentials after successful authentication.
 - The application uses the `google-auth` library to handle OAuth 2.0 authorization. Make sure to replace the `client_secret.json` file with your own credentials obtained from the Google API Console.
+- The `client.py` script implement an example client application that showcase agregated user's fitness data recorded in the last month ([readme](CLIENT.md))
 - The fitness data aggregation logic is implemented in the `fit_data_agg.py` module.
 - The `templates/component` folder contains HTML templates for rendering the login and home pages. Customize these templates according to your requirements.
 - The application runs in debug mode (`debug=True`) for development purposes. In a production environment, this should be set to `False`.
