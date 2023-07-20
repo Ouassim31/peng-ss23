@@ -78,7 +78,7 @@ Also, ensure that you have created a `client_secret.json` file containing the OA
 ## Additional Notes
 
 - The application uses Flask's session to store user credentials after successful authentication.
-- The application uses the `google-auth` library to handle OAuth 2.0 authorization. Make sure to replace the `client_secret.json` file with your own credentials obtained from the Google API Console.
+- The application uses the `google-auth` library to handle OAuth 2.0 authorization. Make sure to place the `client_secret.json` file containing your own credentials obtained from the Google API Console in the `flask-oauth` directory.
 - The `client.py` script implement an example client application that showcase agregated user's fitness data recorded in the last month ([readme](CLIENT.md))
 - The fitness data aggregation logic is implemented in the `fit_data_agg.py` module.
 - The `templates/component` folder contains HTML templates for rendering the login and home pages. Customize these templates according to your requirements.
