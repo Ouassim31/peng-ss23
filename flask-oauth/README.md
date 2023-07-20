@@ -19,19 +19,24 @@ Also, ensure that you have created a `client_secret.json` file containing the OA
 
 ## How to Run
 
-1. Clone or download the repository to your local machine.
-
-2. Install the required dependencies by running:
+1. Clone or download the flask-oauth directory to your local machine.
+2. create and activate a virtual environment (optional, but recommended):
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows, use: venv\Scripts\activate
+   ```
+   
+3. Install the required dependencies by running:
    ```
    pip install -r requirements.txt
    ```
 
-3. Start the Flask development server by running the following command:
+4. Start the Flask development server by running the following command:
    ```
    python app.py
    ```
 
-4. The web application will be available at `http://localhost:8080/` in your web browser.
+5. The web application will be available at `http://localhost:8080/` in your web browser.
 
 ## Endpoints
 
@@ -73,7 +78,8 @@ Also, ensure that you have created a `client_secret.json` file containing the OA
 ## Additional Notes
 
 - The application uses Flask's session to store user credentials after successful authentication.
-- The application uses the `google-auth` library to handle OAuth 2.0 authorization. Make sure to replace the `client_secret.json` file with your own credentials obtained from the Google API Console.
+- The application uses the `google-auth` library to handle OAuth 2.0 authorization. Make sure to place the `client_secret.json` file containing your own credentials obtained from the Google API Console in the `flask-oauth` directory.
+- The `client.py` script implement an example client application that showcase agregated user's fitness data recorded in the last month ([readme](CLIENT.md))
 - The fitness data aggregation logic is implemented in the `fit_data_agg.py` module.
 - The `templates/component` folder contains HTML templates for rendering the login and home pages. Customize these templates according to your requirements.
 - The application runs in debug mode (`debug=True`) for development purposes. In a production environment, this should be set to `False`.
