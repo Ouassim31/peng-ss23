@@ -1,4 +1,4 @@
-# Privacy aware oauth component
+# PENG component
 
 This is a Flask web application that integrates with Google Fit and Google People to fetch and transform user data. The application uses OAuth 2.0 for user authentication and authorization to access their fitness data and personal data. The user can log in, authorize the application to access their  data, and view the sent credentials on the home page.
 
@@ -79,7 +79,7 @@ Also, ensure that you have created a `client_secret.json` file containing the OA
 
 - The application uses Flask's session to store user credentials after successful authentication.
 - The application uses the `google-auth` library to handle OAuth 2.0 authorization. Make sure to place the `client_secret.json` file containing your own credentials obtained from the Google API Console in the `flask-oauth` directory.
-- The `client.py` script implement an example client application that showcase agregated user's fitness data recorded in the last month ([readme](CLIENT.md))
+- The `client.py` script implement an example client application that showcase agregated user's fitness data recorded in the last month (further instructions how to run the client [here](CLIENT.md))
 - The fitness data aggregation logic is implemented in the `fit_data_agg.py` module.
 - The `templates/component` folder contains HTML templates for rendering the login and home pages. Customize these templates according to your requirements.
 - The application runs in debug mode (`debug=True`) for development purposes. In a production environment, this should be set to `False`.
